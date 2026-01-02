@@ -48,7 +48,7 @@
   const player = document.getElementById("player");
   const agora = document.getElementById("agora");
 
-  // Função para baralhar as faixas (shuffle real)
+  // Função para baralhar (shuffle real)
   function baralhar(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -57,12 +57,10 @@
     return arr;
   }
 
-  // Prepara a fila
   function novaFila() {
     fila = baralhar([...faixas]);
   }
 
-  // Toca a próxima faixa
   function tocar() {
     if (fila.length === 0) novaFila();
     const musica = fila.shift();
