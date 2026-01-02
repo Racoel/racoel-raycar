@@ -2,29 +2,52 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Rádio Online</title>
+  <title>Rádio Online – Opus16</title>
 </head>
 <body style="text-align:center;font-family:Arial">
 
-<h2>Rádio – Faixas Originais</h2>
+<h2>Rádio – Faixas Originais Opus16</h2>
 <p id="agora">A preparar...</p>
 
 <audio id="player" controls autoplay></audio>
 
 <script>
-  // Lista das faixas dentro da pasta "audio"
+  // Lista completa das faixas na pasta "audio"
   const faixas = [
-    "audio/faixa01.mp3",
-    "audio/faixa02.mp3",
-    "audio/faixa03.mp3"
-    // adicione todas as suas faixas aqui
+    "audio/opus16_01 o teu nome.mp3",
+    "audio/opus16_02 dare.mp3",
+    "audio/opus16_03 diacronia.mp3",
+    "audio/opus16_04 extraordinary.mp3",
+    "audio/opus16_05 Diacronia (reprise).mp3",
+    "audio/opus16_05 pena maior.mp3",
+    "audio/opus16_06 from the top of the eiffel tower (instrumental).mp3",
+    "audio/opus16_07 o que a gente sente.mp3",
+    "audio/opus16_08 se soubesses.mp3",
+    "audio/opus16_09 var8.mp3",
+    "audio/opus16_10 para lá do tempo.mp3",
+    "audio/opus16_11 sunrise beach party (instrumental).mp3",
+    "audio/opus16_12 mudança.mp3",
+    "audio/opus16_13 _batucada.mp3",
+    "audio/opus16_14 amores.mp3",
+    "audio/opus16_15 pena maior (take 1).mp3",
+    "audio/opus16_17 var5.mp3",
+    "audio/opus16_18 vvar2.mp3",
+    "audio/opus16_22 var7.mp3",
+    "audio/opus16_23 var1617.mp3",
+    "audio/opus16_24 bonus track - var1616.mp3",
+    "audio/opus16_80 give me a chance.mp3",
+    "audio/opus16_81 into your eyes.mp3",
+    "audio/opus16_82 perto.mp3",
+    "audio/opus16_83 tudo a ver.mp3",
+    "audio/opus16_84 o lugar.mp3",
+    "audio/opus16_85 ligação.mp3",
+    "audio/opus16_85 stop tune.mp3"
   ];
 
   let fila = [];
   const player = document.getElementById("player");
   const agora = document.getElementById("agora");
 
-  // Função para baralhar as faixas (shuffle real)
   function baralhar(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -33,12 +56,10 @@
     return arr;
   }
 
-  // Prepara a fila
   function novaFila() {
     fila = baralhar([...faixas]);
   }
 
-  // Toca a próxima faixa
   function tocar() {
     if (fila.length === 0) novaFila();
     const musica = fila.shift();
@@ -55,3 +76,4 @@
 
 </body>
 </html>
+
