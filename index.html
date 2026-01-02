@@ -6,15 +6,13 @@
   <style>
     body { text-align:center; font-family:Arial; }
     button { margin:5px; padding:10px 20px; font-size:16px; }
-    #info { margin:10px 0; font-weight:bold; }
-    #contador { margin:5px 0; color:gray; }
+    #info { margin:15px 0; font-weight:bold; }
   </style>
 </head>
 <body>
 
 <h2>Rádio – Faixas Opus16</h2>
 <div id="info">A preparar...</div>
-<div id="contador">Faixas tocadas: 0</div>
 
 <audio id="player" controls autoplay></audio>
 <br>
@@ -56,7 +54,6 @@
 
   const player = document.getElementById("player");
   const info = document.getElementById("info");
-  const contadorDisplay = document.getElementById("contador");
   const botaoPlayPause = document.getElementById("playpause");
   const botaoProxima = document.getElementById("proxima");
   const botaoAnterior = document.getElementById("anterior");
@@ -64,7 +61,6 @@
   let fila = [];
   let historico = [];
   let indiceAtual = -1;
-  let contadorFaixas = 0;
 
   function baralhar(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -82,10 +78,8 @@
 
   function atualizarInfo() {
     if (indiceAtual >= 0) {
-      const nomeFaixa = fila[indiceAtual].split("/").pop();
-      info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeFaixa}`;
+      info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${fila[indiceAtual].split("/").pop()}`;
     }
-    contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
   }
 
   function tocarProxima() {
@@ -98,25 +92,22 @@
     historico.push(fila[indiceAtual]);
     player.src = fila[indiceAtual];
     player.play();
-    contadorFaixas++;
-    console.log(`Faixa ${contadorFaixas} tocada: ${fila[indiceAtual].split("/").pop()}`);
     atualizarInfo();
   }
 
   function tocarAnterior() {
     if (historico.length <= 1) return;
-    historico.pop(); // remove atual
-    const anterior = historico.pop(); // pega anterior
+    historico.pop(); // remove a faixa atual
+    const anterior = historico.pop(); // pega a anterior
     indiceAtual = fila.indexOf(anterior);
     player.src = anterior;
     player.play();
-    contadorFaixas++;
-    console.log(`Faixa ${contadorFaixas} tocada: ${anterior.split("/").pop()}`);
     historico.push(anterior);
     atualizarInfo();
   }
 
   player.addEventListener("ended", tocarProxima);
+
   botaoProxima.addEventListener("click", tocarProxima);
   botaoAnterior.addEventListener("click", tocarAnterior);
   botaoPlayPause.addEventListener("click", () => {
