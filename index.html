@@ -3,16 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <title>Rádio Online – Opus16</title>
+  <style>
+    body { text-align:center; font-family:Arial; }
+    button { margin:5px; padding:10px 20px; font-size:16px; }
+    #info { margin:10px 0; font-weight:bold; }
+    #contador { margin:5px 0; color:gray; }
+  </style>
 </head>
-<body style="text-align:center;font-family:Arial">
+<body>
 
 <h2>Rádio – Faixas Opus16</h2>
-<p id="agora">A preparar...</p>
+<div id="info">A preparar...</div>
+<div id="contador">Faixas tocadas: 0</div>
 
 <audio id="player" controls autoplay></audio>
+<br>
+<button id="anterior">⏮ Anterior</button>
+<button id="playpause">⏯ Play/Pause</button>
+<button id="proxima">Próxima ▶</button>
 
 <script>
-  // Lista completa das faixas com nomes "limpos" (sem espaços e parênteses)
   const faixas = [
     "audio/opus16_01_o_teu_nome.mp3",
     "audio/opus16_02_dare.mp3",
@@ -44,11 +54,18 @@
     "audio/opus16_85_stop_tune.mp3"
   ];
 
-  let fila = [];
   const player = document.getElementById("player");
-  const agora = document.getElementById("agora");
+  const info = document.getElementById("info");
+  const contadorDisplay = document.getElementById("contador");
+  const botaoPlayPause = document.getElementById("playpause");
+  const botaoProxima = document.getElementById("proxima");
+  const botaoAnterior = document.getElementById("anterior");
 
-  // Função para baralhar (shuffle real)
+  let fila = [];
+  let historico = [];
+  let indiceAtual = -1;
+  let contadorFaixas = 0;
+
   function baralhar(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -59,20 +76,57 @@
 
   function novaFila() {
     fila = baralhar([...faixas]);
+    historico = [];
+    indiceAtual = -1;
   }
 
-  function tocar() {
+  function atualizarInfo() {
+    if (indiceAtual >= 0) {
+      const nomeFaixa = fila[indiceAtual].split("/").pop();
+      info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeFaixa}`;
+    }
+    contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
+  }
+
+  function tocarProxima() {
     if (fila.length === 0) novaFila();
-    const musica = fila.shift();
-    player.src = musica;
-    agora.textContent = "A tocar: " + musica.split("/").pop();
+    indiceAtual++;
+    if (indiceAtual >= fila.length) {
+      novaFila();
+      indiceAtual = 0;
+    }
+    historico.push(fila[indiceAtual]);
+    player.src = fila[indiceAtual];
     player.play();
+    contadorFaixas++;
+    console.log(`Faixa ${contadorFaixas} tocada: ${fila[indiceAtual].split("/").pop()}`);
+    atualizarInfo();
   }
 
-  player.addEventListener("ended", tocar);
+  function tocarAnterior() {
+    if (historico.length <= 1) return;
+    historico.pop(); // remove atual
+    const anterior = historico.pop(); // pega anterior
+    indiceAtual = fila.indexOf(anterior);
+    player.src = anterior;
+    player.play();
+    contadorFaixas++;
+    console.log(`Faixa ${contadorFaixas} tocada: ${anterior.split("/").pop()}`);
+    historico.push(anterior);
+    atualizarInfo();
+  }
 
+  player.addEventListener("ended", tocarProxima);
+  botaoProxima.addEventListener("click", tocarProxima);
+  botaoAnterior.addEventListener("click", tocarAnterior);
+  botaoPlayPause.addEventListener("click", () => {
+    if (player.paused) player.play();
+    else player.pause();
+  });
+
+  // Inicializa
   novaFila();
-  tocar();
+  tocarProxima();
 </script>
 
 </body>
