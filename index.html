@@ -3,79 +3,45 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Rádio Online – Racoel Raycar</title>
+  <title>Rádio Online – Teste</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { color-scheme: light dark; }
     body { text-align:center; font-family:Arial, sans-serif; margin: 32px; }
     h2 { margin-bottom: 8px; }
     button { margin:5px; padding:10px 20px; font-size:16px; cursor:pointer; }
     #info { margin:10px 0; font-weight:bold; }
     #contador { margin:5px 0; color:gray; }
     #status { margin:10px 0; min-height:1.2em; color:#b00020; }
-    #lista { max-width:800px; margin:14px auto; text-align:left; font-size:14px; }
-    #lista li { margin:3px 0; }
-    .ok { color: #0a7; }
-    .fail { color: #c00; }
-    .muted { color: #888; }
   </style>
 </head>
 <body>
 
-  <h2>Rádio – Faixas Opus16</h2>
-  <div id="info">A preparar...</div>
+  <h2>Rádio – Teste mínimo</h2>
+  <div id="info">A preparar…</div>
   <div id="contador">Faixas tocadas: 0</div>
-  <div id="status" class="muted"></div>
+  <div id="status"></div>
 
-  <!-- Oculta a opção de download no player -->
+  <!-- Oculta a opção de download -->
   <audio id="player" controls controlsList="nodownload"></audio>
 
   <div style="margin-top:12px;">
     <button id="anterior">⏮ Anterior</button>
-    <button id="playpause">⏯ Play/Pause</button>
+    <button id="playpause">⏯ Play</button>
     <button id="proxima">Próxima ▶</button>
   </div>
 
-  <!-- Lista de verificação dos ficheiros -->
-  <ul id="lista"></ul>
-
   <script>
+    // *** Testa com 1 ficheiro que TENHAS A CERTEZA que existe ***
     const faixas = [
-      "audio/opus16_01_o_teu_nome.mp3",
-      "audio/opus16_02_dare.mp3",
-      "audio/opus16_03_diacronia.mp3",
-      "audio/opus16_04_extraordinary.mp3",
-      "audio/opus16_05_diacronia_reprise.mp3",
-      "audio/opus16_05_pena_maior.mp3",
-      "audio/opus16_06_from_the_top_of_the_eiffel_tower_instrumental.mp3",
-      "audio/opus16_07_o_que_a_gente_sente.mp3",
-      "audio/opus16_08_se_soubesses.mp3",
-      "audio/opus16_09_var8.mp3",
-      "audio/opus16_10_para_la_do_tempo.mp3",
-      "audio/opus16_11_sunrise_beach_party_instrumental.mp3",
-      "audio/opus16_12_mudanca.mp3",
-      "audio/opus16_13_batucada.mp3",
-      "audio/opus16_14_amores.mp3",
-      "audio/opus16_15_pena_maior_take1.mp3",
-      "audio/opus16_17_var5.mp3",
-      "audio/opus16_18_vvar2.mp3",
-      "audio/opus16_22_var7.mp3",
-      "audio/opus16_23_var1617.mp3",
-      "audio/opus16_24_bonus_track_var1616.mp3",
-      "audio/opus16_80_give_me_a_chance.mp3",
-      "audio/opus16_81_into_your_eyes.mp3",
-      "audio/opus16_82_perto.mp3",
-      "audio/opus16_83_tudo_a_ver.mp3",
-      "audio/opus16_84_o_lugar.mp3",
-      "audio/opus16_85_ligacao.mp3",
-      "audio/opus16_85_stop_tune.mp3"
+      "audio/opus16_01_o_teu_nome.mp3"
+      // Se quiseres, adiciona outro depois de confirmar a primeira:
+      // "audio/opus16_02_dare.mp3"
     ];
 
     const player = document.getElementById("player");
     const info = document.getElementById("info");
     const contadorDisplay = document.getElementById("contador");
     const status = document.getElementById("status");
-    const lista = document.getElementById("lista");
     const botaoPlayPause = document.getElementById("playpause");
     const botaoProxima = document.getElementById("proxima");
     const botaoAnterior = document.getElementById("anterior");
@@ -85,7 +51,6 @@
     let indiceAtual = -1;
     let contadorFaixas = 0;
 
-    // Fisher–Yates shuffle
     function baralhar(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -109,7 +74,7 @@
       if (indiceAtual >= 0) {
         info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeAmigavel(fila[indiceAtual])}`;
       } else {
-        info.textContent = "A preparar...";
+        info.textContent = "A preparar…";
       }
       contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
       botaoPlayPause.textContent = player.paused ? "⏯ Play" : "⏸ Pause";
@@ -124,13 +89,9 @@
         indiceAtual = 0;
       }
       const atual = fila[indiceAtual];
-
-      // Opcional cache busting (para testes): descomenta se precisares
-      // const src = `${atual}?v=${Date.now()}`;
-      const src = atual;
-
       historico.push(atual);
-      player.src = src;
+      player.src = atual; // mantém simples para o teste
+
       player.play().then(() => {
         contadorFaixas++;
         atualizarInfo();
@@ -144,12 +105,12 @@
     function tocarAnterior() {
       status.textContent = "";
       if (historico.length <= 1) return;
-      historico.pop(); // remove atual
-      const anterior = historico.pop(); // pega anterior
+      historico.pop();               // remove atual
+      const anterior = historico.pop(); // anterior
       indiceAtual = fila.indexOf(anterior);
       player.src = anterior;
       player.play().then(() => {
-        // Se não queres contar ao voltar atrás, comenta a linha abaixo:
+        // Se não quiseres contar ao voltar atrás, comenta a linha abaixo:
         contadorFaixas++;
         atualizarInfo();
       });
@@ -157,30 +118,8 @@
 
     function tratarErro(e) {
       console.error("Erro no audio:", e);
-      status.textContent = "Erro ao carregar esta faixa (ver consola). A avançar…";
-      // Avança para próxima
-      setTimeout(tocarProxima, 300);
-    }
-
-    // Lista de verificação: tenta carregar metadados de cada faixa
-    async function verificarFaixas() {
-      lista.innerHTML = "<li class='muted'>A verificar existência dos ficheiros…</li>";
-      const itens = [];
-      for (const f of faixas) {
-        const a = document.createElement("audio");
-        a.preload = "metadata";
-        a.src = f + "?check=" + Date.now(); // evita cache neste teste
-        try {
-          await a.play().catch(()=>{}); // força load; ignora autoplay
-          // se metadados chegam, ok
-          itens.push(`<li class="ok">✅ ${f}</li>`);
-        } catch {
-          itens.push(`<li class="fail">❌ ${f}</li>`);
-        } finally {
-          a.pause();
-        }
-      }
-      lista.innerHTML = itens.join("");
+      status.textContent = "Erro ao carregar esta faixa. Verifica o nome/caminho. A avançar…";
+      setTimeout(tocarProxima, 500);
     }
 
     player.addEventListener("ended", tocarProxima);
@@ -191,7 +130,7 @@
     botaoPlayPause.addEventListener("click", () => {
       if (player.paused) {
         player.play().catch(() => {
-          status.textContent = "Clique novamente se necessário; alguns navegadores exigem interação.";
+          status.textContent = "Clica novamente: alguns navegadores exigem interação.";
         });
       } else {
         player.pause();
@@ -202,10 +141,8 @@
     // Inicializa
     novaFila();
     atualizarInfo();
-    verificarFaixas().then(() => {
-      // tenta reproduzir a primeira
-      tocarProxima();
-    });
+    // Tenta logo tocar — se o autoplay for bloqueado, usa o botão Play
+    tocarProxima();
   </script>
 </body>
 </html>
