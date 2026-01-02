@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Rádio Online</title>
+</head>
+<body style="text-align:center;font-family:Arial">
+
+<h2>Rádio – Faixas Originais</h2>
+<p id="agora">A preparar...</p>
+
+<audio id="player" controls autoplay></audio>
+
+<script>
+  // Lista das faixas dentro da pasta "audio"
+  const faixas = [
+    "audio/faixa01.mp3",
+    "audio/faixa02.mp3",
+    "audio/faixa03.mp3"
+    // adicione todas as suas faixas aqui
+  ];
+
+  let fila = [];
+  const player = document.getElementById("player");
+  const agora = document.getElementById("agora");
+
+  // Função para baralhar as faixas (shuffle real)
+  function baralhar(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Prepara a fila
+  function novaFila() {
+    fila = baralhar([...faixas]);
+  }
+
+  // Toca a próxima faixa
+  function tocar() {
+    if (fila.length === 0) novaFila();
+    const musica = fila.shift();
+    player.src = musica;
+    agora.textContent = "A tocar: " + musica.split("/").pop();
+    player.play();
+  }
+
+  player.addEventListener("ended", tocar);
+
+  novaFila();
+  tocar();
+</script>
+
+</body>
+</html>
