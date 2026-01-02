@@ -19,7 +19,7 @@
   <div id="info">A preparar...</div>
   <div id="contador">Faixas tocadas: 0</div>
 
-  <!-- Linha atualizada com controlsList="nodownload" -->
+  <!-- Impede a opção de download no player -->
   <audio id="player" controls controlsList="nodownload" autoplay></audio>
   <br>
   <button id="anterior">⏮ Anterior</button>
@@ -82,6 +82,61 @@
       fila = baralhar([...faixas]);
       historico = [];
       indiceAtual = -1;
-    atualizarInfo() {
+    } // <-- ESTA CHAVETA FALTAVA
+
+    function atualizarInfo() {
       if (indiceAtual >= 0) {
         const nomeFaixa = fila[indiceAtual].split("/").pop();
+        info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeFaixa}`;
+      }
+      contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
+    }
+
+    function tocarProxima() {
+      if (fila.length === 0) novaFila();
+      indiceAtual++;
+      if (indiceAtual >= fila.length) {
+        novaFila();
+        indiceAtual = 0;
+      }
+      historico.push(fila[indiceAtual]);
+
+      // Se quiseres evitar cache do MP3 durante testes, descomenta a linha com ?v=
+      // player.src = fila[indiceAtual] + '?v=' + Date.now();
+      player.src = fila[indiceAtual];
+
+      player.play().catch(() => {
+        // Alguns browsers bloqueiam autoplay: o botão Play/Pause resolve
+        console.warn("Autoplay bloqueado; clica em Play.");
+      });
+      contadorFaixas++;
+      atualizarInfo();
+    }
+
+    function tocarAnterior() {
+      if (historico.length <= 1) return;
+      historico.pop(); // remove atual
+      const anterior = historico.pop(); // pega anterior
+      indiceAtual = fila.indexOf(anterior);
+      player.src = anterior;
+      player.play();
+      // Se não quiseres contar ao voltar atrás, remove a linha seguinte:
+      contadorFaixas++;
+      historico.push(anterior);
+      atualizarInfo();
+    }
+
+    player.addEventListener("ended", tocarProxima);
+    botaoProxima.addEventListener("click", tocarProxima);
+    botaoAnterior.addEventListener("click", tocarAnterior);
+    botaoPlayPause.addEventListener("click", () => {
+      if (player.paused) player.play(); else player.pause();
+    });
+
+    // Inicializa
+    novaFila();
+    tocarProxima();
+  </script>
+
+</body>
+</html>
