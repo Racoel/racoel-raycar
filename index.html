@@ -6,11 +6,18 @@
   <title>Rádio Online – Racoel Raycar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { text-align:center; font-family:Arial, sans-serif; margin: 40px; }
+    :root { color-scheme: light dark; }
+    body { text-align:center; font-family:Arial, sans-serif; margin: 32px; }
     h2 { margin-bottom: 8px; }
     button { margin:5px; padding:10px 20px; font-size:16px; cursor:pointer; }
     #info { margin:10px 0; font-weight:bold; }
     #contador { margin:5px 0; color:gray; }
+    #status { margin:10px 0; min-height:1.2em; color:#b00020; }
+    #lista { max-width:800px; margin:14px auto; text-align:left; font-size:14px; }
+    #lista li { margin:3px 0; }
+    .ok { color: #0a7; }
+    .fail { color: #c00; }
+    .muted { color: #888; }
   </style>
 </head>
 <body>
@@ -18,13 +25,19 @@
   <h2>Rádio – Faixas Opus16</h2>
   <div id="info">A preparar...</div>
   <div id="contador">Faixas tocadas: 0</div>
+  <div id="status" class="muted"></div>
 
-  <!-- Impede a opção de download no player -->
-  <audio id="player" controls controlsList="nodownload" autoplay></audio>
-  <br>
-  <button id="anterior">⏮ Anterior</button>
-  <button id="playpause">⏯ Play/Pause</button>
-  <button id="proxima">Próxima ▶</button>
+  <!-- Oculta a opção de download no player -->
+  <audio id="player" controls controlsList="nodownload"></audio>
+
+  <div style="margin-top:12px;">
+    <button id="anterior">⏮ Anterior</button>
+    <button id="playpause">⏯ Play/Pause</button>
+    <button id="proxima">Próxima ▶</button>
+  </div>
+
+  <!-- Lista de verificação dos ficheiros -->
+  <ul id="lista"></ul>
 
   <script>
     const faixas = [
@@ -61,6 +74,8 @@
     const player = document.getElementById("player");
     const info = document.getElementById("info");
     const contadorDisplay = document.getElementById("contador");
+    const status = document.getElementById("status");
+    const lista = document.getElementById("lista");
     const botaoPlayPause = document.getElementById("playpause");
     const botaoProxima = document.getElementById("proxima");
     const botaoAnterior = document.getElementById("anterior");
@@ -70,6 +85,7 @@
     let indiceAtual = -1;
     let contadorFaixas = 0;
 
+    // Fisher–Yates shuffle
     function baralhar(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -82,62 +98,114 @@
       fila = baralhar([...faixas]);
       historico = [];
       indiceAtual = -1;
-    } // <-- ESTA CHAVETA FALTAVA
+    }
+
+    function nomeAmigavel(path) {
+      const nome = path.split("/").pop();
+      return nome.replace(/_/g, " ").replace(/\.mp3$/i, "");
+    }
 
     function atualizarInfo() {
       if (indiceAtual >= 0) {
-        const nomeFaixa = fila[indiceAtual].split("/").pop();
-        info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeFaixa}`;
+        info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeAmigavel(fila[indiceAtual])}`;
+      } else {
+        info.textContent = "A preparar...";
       }
       contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
+      botaoPlayPause.textContent = player.paused ? "⏯ Play" : "⏸ Pause";
     }
 
     function tocarProxima() {
+      status.textContent = "";
       if (fila.length === 0) novaFila();
       indiceAtual++;
       if (indiceAtual >= fila.length) {
         novaFila();
         indiceAtual = 0;
       }
-      historico.push(fila[indiceAtual]);
+      const atual = fila[indiceAtual];
 
-      // Se quiseres evitar cache do MP3 durante testes, descomenta a linha com ?v=
-      // player.src = fila[indiceAtual] + '?v=' + Date.now();
-      player.src = fila[indiceAtual];
+      // Opcional cache busting (para testes): descomenta se precisares
+      // const src = `${atual}?v=${Date.now()}`;
+      const src = atual;
 
-      player.play().catch(() => {
-        // Alguns browsers bloqueiam autoplay: o botão Play/Pause resolve
-        console.warn("Autoplay bloqueado; clica em Play.");
+      historico.push(atual);
+      player.src = src;
+      player.play().then(() => {
+        contadorFaixas++;
+        atualizarInfo();
+      }).catch(err => {
+        console.warn("Autoplay bloqueado:", err);
+        status.textContent = "Autoplay bloqueado — clica em ⏯ Play para iniciar.";
+        atualizarInfo();
       });
-      contadorFaixas++;
-      atualizarInfo();
     }
 
     function tocarAnterior() {
+      status.textContent = "";
       if (historico.length <= 1) return;
       historico.pop(); // remove atual
       const anterior = historico.pop(); // pega anterior
       indiceAtual = fila.indexOf(anterior);
       player.src = anterior;
-      player.play();
-      // Se não quiseres contar ao voltar atrás, remove a linha seguinte:
-      contadorFaixas++;
-      historico.push(anterior);
-      atualizarInfo();
+      player.play().then(() => {
+        // Se não queres contar ao voltar atrás, comenta a linha abaixo:
+        contadorFaixas++;
+        atualizarInfo();
+      });
+    }
+
+    function tratarErro(e) {
+      console.error("Erro no audio:", e);
+      status.textContent = "Erro ao carregar esta faixa (ver consola). A avançar…";
+      // Avança para próxima
+      setTimeout(tocarProxima, 300);
+    }
+
+    // Lista de verificação: tenta carregar metadados de cada faixa
+    async function verificarFaixas() {
+      lista.innerHTML = "<li class='muted'>A verificar existência dos ficheiros…</li>";
+      const itens = [];
+      for (const f of faixas) {
+        const a = document.createElement("audio");
+        a.preload = "metadata";
+        a.src = f + "?check=" + Date.now(); // evita cache neste teste
+        try {
+          await a.play().catch(()=>{}); // força load; ignora autoplay
+          // se metadados chegam, ok
+          itens.push(`<li class="ok">✅ ${f}</li>`);
+        } catch {
+          itens.push(`<li class="fail">❌ ${f}</li>`);
+        } finally {
+          a.pause();
+        }
+      }
+      lista.innerHTML = itens.join("");
     }
 
     player.addEventListener("ended", tocarProxima);
+    player.addEventListener("error", tratarErro);
+
     botaoProxima.addEventListener("click", tocarProxima);
     botaoAnterior.addEventListener("click", tocarAnterior);
     botaoPlayPause.addEventListener("click", () => {
-      if (player.paused) player.play(); else player.pause();
+      if (player.paused) {
+        player.play().catch(() => {
+          status.textContent = "Clique novamente se necessário; alguns navegadores exigem interação.";
+        });
+      } else {
+        player.pause();
+      }
+      atualizarInfo();
     });
 
     // Inicializa
     novaFila();
-    tocarProxima();
+    atualizarInfo();
+    verificarFaixas().then(() => {
+      // tenta reproduzir a primeira
+      tocarProxima();
+    });
   </script>
-
 </body>
 </html>
-
