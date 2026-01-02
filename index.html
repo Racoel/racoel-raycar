@@ -1,133 +1,178 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Rádio Online – Racoel Raycar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { text-align:center; font-family:Arial; }
-    button { margin:5px; padding:10px 20px; font-size:16px; }
+    :root { color-scheme: light dark; }
+    body { text-align:center; font-family:Arial, sans-serif; margin: 40px; }
+    h2 { margin-bottom: 8px; }
+    button { margin:5px; padding:10px 20px; font-size:16px; cursor:pointer; }
     #info { margin:10px 0; font-weight:bold; }
     #contador { margin:5px 0; color:gray; }
+    #status { margin:8px 0; color:#a00; min-height:1em; }
+    .controls { margin-top:12px; }
   </style>
 </head>
 <body>
 
-<h2>Rádio – Faixas Opus16</h2>
-<div id="info">A preparar...</div>
-<div id="contador">Faixas tocadas: 0</div>
+  <h2>Rádio – Faixas Opus16</h2>
+  <div id="info">A preparar...</div>
+  <div id="contador">Faixas tocadas: 0</div>
+  <div id="status"></div>
 
-<audio id="player" controls autoplay></audio>
-<br>
-<button id="anterior">⏮ Anterior</button>
-<button id="playpause">⏯ Play/Pause</button>
-<button id="proxima">Próxima ▶</button>
+  <audio id="player" controls></audio>
 
-<script>
-  const faixas = [
-    "audio/opus16_01_o_teu_nome.mp3",
-    "audio/opus16_02_dare.mp3",
-    "audio/opus16_03_diacronia.mp3",
-    "audio/opus16_04_extraordinary.mp3",
-    "audio/opus16_05_diacronia_reprise.mp3",
-    "audio/opus16_05_pena_maior.mp3",
-    "audio/opus16_06_from_the_top_of_the_eiffel_tower_instrumental.mp3",
-    "audio/opus16_07_o_que_a_gente_sente.mp3",
-    "audio/opus16_08_se_soubesses.mp3",
-    "audio/opus16_09_var8.mp3",
-    "audio/opus16_10_para_la_do_tempo.mp3",
-    "audio/opus16_11_sunrise_beach_party_instrumental.mp3",
-    "audio/opus16_12_mudanca.mp3",
-    "audio/opus16_13_batucada.mp3",
-    "audio/opus16_14_amores.mp3",
-    "audio/opus16_15_pena_maior_take1.mp3",
-    "audio/opus16_17_var5.mp3",
-    "audio/opus16_18_vvar2.mp3",
-    "audio/opus16_22_var7.mp3",
-    "audio/opus16_23_var1617.mp3",
-    "audio/opus16_24_bonus_track_var1616.mp3",
-    "audio/opus16_80_give_me_a_chance.mp3",
-    "audio/opus16_81_into_your_eyes.mp3",
-    "audio/opus16_82_perto.mp3",
-    "audio/opus16_83_tudo_a_ver.mp3",
-    "audio/opus16_84_o_lugar.mp3",
-    "audio/opus16_85_ligacao.mp3",
-    "audio/opus16_85_stop_tune.mp3"
-  ];
+  <div class="controls">
+    <button id="anterior">⏮ Anterior</button>
+    <button id="playpause">⏯ Play</button>
+    <button id="proxima">Próxima ▶</button>
+  </div>
 
-  const player = document.getElementById("player");
-  const info = document.getElementById("info");
-  const contadorDisplay = document.getElementById("contador");
-  const botaoPlayPause = document.getElementById("playpause");
-  const botaoProxima = document.getElementById("proxima");
-  const botaoAnterior = document.getElementById("anterior");
+  <script>
+    const faixas = [
+      "audio/opus16_01_o_teu_nome.mp3",
+      "audio/opus16_02_dare.mp3",
+      "audio/opus16_03_diacronia.mp3",
+      "audio/opus16_04_extraordinary.mp3",
+      "audio/opus16_05_diacronia_reprise.mp3",
+      "audio/opus16_05_pena_maior.mp3",
+      "audio/opus16_06_from_the_top_of_the_eiffel_tower_instrumental.mp3",
+      "audio/opus16_07_o_que_a_gente_sente.mp3",
+      "audio/opus16_08_se_soubesses.mp3",
+      "audio/opus16_09_var8.mp3",
+      "audio/opus16_10_para_la_do_tempo.mp3",
+      "audio/opus16_11_sunrise_beach_party_instrumental.mp3",
+      "audio/opus16_12_mudanca.mp3",
+      "audio/opus16_13_batucada.mp3",
+      "audio/opus16_14_amores.mp3",
+      "audio/opus16_15_pena_maior_take1.mp3",
+      "audio/opus16_17_var5.mp3",
+      "audio/opus16_18_vvar2.mp3",
+      "audio/opus16_22_var7.mp3",
+      "audio/opus16_23_var1617.mp3",
+      "audio/opus16_24_bonus_track_var1616.mp3",
+      "audio/opus16_80_give_me_a_chance.mp3",
+      "audio/opus16_81_into_your_eyes.mp3",
+      "audio/opus16_82_perto.mp3",
+      "audio/opus16_83_tudo_a_ver.mp3",
+      "audio/opus16_84_o_lugar.mp3",
+      "audio/opus16_85_ligacao.mp3",
+      "audio/opus16_85_stop_tune.mp3"
+    ];
 
-  let fila = [];
-  let historico = [];
-  let indiceAtual = -1;
-  let contadorFaixas = 0;
+    const player = document.getElementById("player");
+    const info = document.getElementById("info");
+    const contadorDisplay = document.getElementById("contador");
+    const status = document.getElementById("status");
+    const botaoPlayPause = document.getElementById("playpause");
+    const botaoProxima = document.getElementById("proxima");
+    const botaoAnterior = document.getElementById("anterior");
 
-  function baralhar(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+    let fila = [];
+    let historico = [];
+    let indiceAtual = -1;
+    let contadorFaixas = 0;
+    let ultimaDaFilaAnterior = null;
+
+    function baralhar(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
     }
-    return arr;
-  }
 
-  function novaFila() {
-    fila = baralhar([...faixas]);
-    historico = [];
-    indiceAtual = -1;
-  }
-
-  function atualizarInfo() {
-    if (indiceAtual >= 0) {
-      const nomeFaixa = fila[indiceAtual].split("/").pop();
-      info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeFaixa}`;
+    function novaFila() {
+      fila = baralhar([...faixas]);
+      // Opcional: evita que a nova primeira seja igual à última tocada na rotação anterior
+      if (ultimaDaFilaAnterior && fila.length > 1 && fila[0] === ultimaDaFilaAnterior) {
+        // troca primeira com outra posição
+        const j = Math.floor(Math.random() * (fila.length - 1)) + 1;
+        [fila[0], fila[j]] = [fila[j], fila[0]];
+      }
+      historico = [];
+      indiceAtual = -1;
     }
-    contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
-  }
 
-  function tocarProxima() {
-    if (fila.length === 0) novaFila();
-    indiceAtual++;
-    if (indiceAtual >= fila.length) {
-      novaFila();
-      indiceAtual = 0;
+    function nomeAmigavel(caminho) {
+      const nome = caminho.split("/").pop();
+      return nome.replace(/_/g, " ").replace(/\.mp3$/i, "");
     }
-    historico.push(fila[indiceAtual]);
-    player.src = fila[indiceAtual];
-    player.play();
-    contadorFaixas++;
-    console.log(`Faixa ${contadorFaixas} tocada: ${fila[indiceAtual].split("/").pop()}`);
-    atualizarInfo();
-  }
 
-  function tocarAnterior() {
-    if (historico.length <= 1) return;
-    historico.pop(); // remove atual
-    const anterior = historico.pop(); // pega anterior
-    indiceAtual = fila.indexOf(anterior);
-    player.src = anterior;
-    player.play();
-    contadorFaixas++;
-    console.log(`Faixa ${contadorFaixas} tocada: ${anterior.split("/").pop()}`);
-    historico.push(anterior);
-    atualizarInfo();
-  }
+    function atualizarInfo() {
+      if (indiceAtual >= 0) {
+        const nomeFaixa = nomeAmigavel(fila[indiceAtual]);
+        info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeFaixa}`;
+      }
+      contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
+      botaoPlayPause.textContent = player.paused ? "⏯ Play" : "⏸ Pause";
+    }
 
-  player.addEventListener("ended", tocarProxima);
-  botaoProxima.addEventListener("click", tocarProxima);
-  botaoAnterior.addEventListener("click", tocarAnterior);
-  botaoPlayPause.addEventListener("click", () => {
-    if (player.paused) player.play();
-    else player.pause();
-  });
+    function tocarProxima() {
+      status.textContent = "";
+      if (fila.length === 0) novaFila();
+      indiceAtual++;
+      if (indiceAtual >= fila.length) {
+        // guardar última para evitar repetição imediata
+        ultimaDaFilaAnterior = fila[fila.length - 1];
+        novaFila();
+        indiceAtual = 0;
+      }
+      const faixa = fila[indiceAtual];
+      historico.push(faixa);
+      player.src = faixa;
+      player.play().catch(() => {
+        status.textContent = "Clique em Play para iniciar a reprodução (autoplay bloqueado pelo navegador).";
+      });
+      contadorFaixas++;
+      atualizarInfo();
+    }
 
-  // Inicializa
-  novaFila();
-  tocarProxima();
-</script>
+    function tocarAnterior() {
+      status.textContent = "";
+      if (historico.length <= 1) return;
+      // remover atual
+      historico.pop();
+      const anterior = historico.pop();
+      indiceAtual = fila.indexOf(anterior);
+      player.src = anterior;
+      player.play().catch(() => {
+        status.textContent = "Clique em Play para iniciar a reprodução.";
+      });
+      // Nota: não incrementa contador ao voltar atrás
+      historico.push(anterior);
+      atualizarInfo();
+    }
 
+    function tratarErro() {
+      status.textContent = "Erro ao carregar a faixa. A avançar para a próxima…";
+      // tentar próxima
+      tocarProxima();
+    }
+
+    player.addEventListener("ended", tocarProxima);
+    player.addEventListener("error", tratarErro);
+
+    botaoProxima.addEventListener("click", tocarProxima);
+    botaoAnterior.addEventListener("click", tocarAnterior);
+    botaoPlayPause.addEventListener("click", () => {
+      if (player.paused) {
+        player.play().catch(() => {
+          status.textContent = "Clique novamente se necessário; alguns navegadores exigem interação.";
+        });
+      } else {
+        player.pause();
+      }
+      atualizarInfo();
+    });
+
+    // Inicializa
+    novaFila();
+    // primeira reprodução requer interação em alguns browsers; tentamos mesmo assim:
+    tocarProxima();
+  </script>
 </body>
 </html>
