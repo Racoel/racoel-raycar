@@ -6,14 +6,11 @@
   <title>Rádio Online – Racoel Raycar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { color-scheme: light dark; }
     body { text-align:center; font-family:Arial, sans-serif; margin: 40px; }
     h2 { margin-bottom: 8px; }
     button { margin:5px; padding:10px 20px; font-size:16px; cursor:pointer; }
     #info { margin:10px 0; font-weight:bold; }
     #contador { margin:5px 0; color:gray; }
-    #status { margin:8px 0; color:#a00; min-height:1em; }
-    .controls { margin-top:12px; }
   </style>
 </head>
 <body>
@@ -21,15 +18,13 @@
   <h2>Rádio – Faixas Opus16</h2>
   <div id="info">A preparar...</div>
   <div id="contador">Faixas tocadas: 0</div>
-  <div id="status"></div>
 
-  <audio id="player" controls></audio>
-
-  <div class="controls">
-    <button id="anterior">⏮ Anterior</button>
-    <button id="playpause">⏯ Play</button>
-    <button id="proxima">Próxima ▶</button>
-  </div>
+  <!-- Linha atualizada com controlsList="nodownload" -->
+  <audio id="player" controls controlsList="nodownload" autoplay></audio>
+  <br>
+  <button id="anterior">⏮ Anterior</button>
+  <button id="playpause">⏯ Play/Pause</button>
+  <button id="proxima">Próxima ▶</button>
 
   <script>
     const faixas = [
@@ -66,7 +61,6 @@
     const player = document.getElementById("player");
     const info = document.getElementById("info");
     const contadorDisplay = document.getElementById("contador");
-    const status = document.getElementById("status");
     const botaoPlayPause = document.getElementById("playpause");
     const botaoProxima = document.getElementById("proxima");
     const botaoAnterior = document.getElementById("anterior");
@@ -75,7 +69,6 @@
     let historico = [];
     let indiceAtual = -1;
     let contadorFaixas = 0;
-    let ultimaDaFilaAnterior = null;
 
     function baralhar(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
@@ -87,92 +80,8 @@
 
     function novaFila() {
       fila = baralhar([...faixas]);
-      // Opcional: evita que a nova primeira seja igual à última tocada na rotação anterior
-      if (ultimaDaFilaAnterior && fila.length > 1 && fila[0] === ultimaDaFilaAnterior) {
-        // troca primeira com outra posição
-        const j = Math.floor(Math.random() * (fila.length - 1)) + 1;
-        [fila[0], fila[j]] = [fila[j], fila[0]];
-      }
       historico = [];
       indiceAtual = -1;
-    }
-
-    function nomeAmigavel(caminho) {
-      const nome = caminho.split("/").pop();
-      return nome.replace(/_/g, " ").replace(/\.mp3$/i, "");
-    }
-
-    function atualizarInfo() {
+    atualizarInfo() {
       if (indiceAtual >= 0) {
-        const nomeFaixa = nomeAmigavel(fila[indiceAtual]);
-        info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeFaixa}`;
-      }
-      contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
-      botaoPlayPause.textContent = player.paused ? "⏯ Play" : "⏸ Pause";
-    }
-
-    function tocarProxima() {
-      status.textContent = "";
-      if (fila.length === 0) novaFila();
-      indiceAtual++;
-      if (indiceAtual >= fila.length) {
-        // guardar última para evitar repetição imediata
-        ultimaDaFilaAnterior = fila[fila.length - 1];
-        novaFila();
-        indiceAtual = 0;
-      }
-      const faixa = fila[indiceAtual];
-      historico.push(faixa);
-      player.src = faixa;
-      player.play().catch(() => {
-        status.textContent = "Clique em Play para iniciar a reprodução (autoplay bloqueado pelo navegador).";
-      });
-      contadorFaixas++;
-      atualizarInfo();
-    }
-
-    function tocarAnterior() {
-      status.textContent = "";
-      if (historico.length <= 1) return;
-      // remover atual
-      historico.pop();
-      const anterior = historico.pop();
-      indiceAtual = fila.indexOf(anterior);
-      player.src = anterior;
-      player.play().catch(() => {
-        status.textContent = "Clique em Play para iniciar a reprodução.";
-      });
-      // Nota: não incrementa contador ao voltar atrás
-      historico.push(anterior);
-      atualizarInfo();
-    }
-
-    function tratarErro() {
-      status.textContent = "Erro ao carregar a faixa. A avançar para a próxima…";
-      // tentar próxima
-      tocarProxima();
-    }
-
-    player.addEventListener("ended", tocarProxima);
-    player.addEventListener("error", tratarErro);
-
-    botaoProxima.addEventListener("click", tocarProxima);
-    botaoAnterior.addEventListener("click", tocarAnterior);
-    botaoPlayPause.addEventListener("click", () => {
-      if (player.paused) {
-        player.play().catch(() => {
-          status.textContent = "Clique novamente se necessário; alguns navegadores exigem interação.";
-        });
-      } else {
-        player.pause();
-      }
-      atualizarInfo();
-    });
-
-    // Inicializa
-    novaFila();
-    // primeira reprodução requer interação em alguns browsers; tentamos mesmo assim:
-    tocarProxima();
-  </script>
-</body>
-</html>
+        const nomeFaixa = fila[indiceAtual].split("/").pop();
