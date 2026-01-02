@@ -2,78 +2,21 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Rádio Online – Opus16</title>
+  <title>Rádio Online – Opus16 Automática</title>
 </head>
 <body style="text-align:center;font-family:Arial">
 
-<h2>Rádio – Faixas Originais Opus16</h2>
+<h2>Rádio – Faixas Opus16 (Automática)</h2>
 <p id="agora">A preparar...</p>
 
 <audio id="player" controls autoplay></audio>
 
 <script>
-  // Lista completa das faixas na pasta "audio"
-  const faixas = [
-    "audio/opus16_01 o teu nome.mp3",
-    "audio/opus16_02 dare.mp3",
-    "audio/opus16_03 diacronia.mp3",
-    "audio/opus16_04 extraordinary.mp3",
-    "audio/opus16_05 Diacronia (reprise).mp3",
-    "audio/opus16_05 pena maior.mp3",
-    "audio/opus16_06 from the top of the eiffel tower (instrumental).mp3",
-    "audio/opus16_07 o que a gente sente.mp3",
-    "audio/opus16_08 se soubesses.mp3",
-    "audio/opus16_09 var8.mp3",
-    "audio/opus16_10 para lá do tempo.mp3",
-    "audio/opus16_11 sunrise beach party (instrumental).mp3",
-    "audio/opus16_12 mudança.mp3",
-    "audio/opus16_13 _batucada.mp3",
-    "audio/opus16_14 amores.mp3",
-    "audio/opus16_15 pena maior (take 1).mp3",
-    "audio/opus16_17 var5.mp3",
-    "audio/opus16_18 vvar2.mp3",
-    "audio/opus16_22 var7.mp3",
-    "audio/opus16_23 var1617.mp3",
-    "audio/opus16_24 bonus track - var1616.mp3",
-    "audio/opus16_80 give me a chance.mp3",
-    "audio/opus16_81 into your eyes.mp3",
-    "audio/opus16_82 perto.mp3",
-    "audio/opus16_83 tudo a ver.mp3",
-    "audio/opus16_84 o lugar.mp3",
-    "audio/opus16_85 ligação.mp3",
-    "audio/opus16_85 stop tune.mp3"
-  ];
-
-  let fila = [];
   const player = document.getElementById("player");
   const agora = document.getElementById("agora");
 
-  function baralhar(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
+  let faixas = [];
+  let fila = [];
 
-  function novaFila() {
-    fila = baralhar([...faixas]);
-  }
-
-  function tocar() {
-    if (fila.length === 0) novaFila();
-    const musica = fila.shift();
-    player.src = musica;
-    agora.textContent = "A tocar: " + musica.split("/").pop();
-    player.play();
-  }
-
-  player.addEventListener("ended", tocar);
-
-  novaFila();
-  tocar();
-</script>
-
-</body>
-</html>
-
+  // Função para baralhar
+  funct
