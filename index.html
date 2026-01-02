@@ -306,3 +306,71 @@
 
     /*** EVENTOS DO PLAYER ***/
     player.addEventListener("ended", tocarProxima);
+    player.addEventListener("error", (e) => {
+      console.error("Erro no áudio:", e);
+      status.textContent = "Erro ao carregar esta faixa. A avançar para a próxima…";
+      setTimeout(tocarProxima, 400);
+    });
+
+    player.addEventListener("timeupdate", () => {
+      tempo.textContent = `${fmtMMSS(player.currentTime)} / ${fmtMMSS(player.duration)}`;
+    });
+
+    /*** CONTROLOS ***/
+    btnProxima.addEventListener("click", tocarProxima);
+    btnAnterior.addEventListener("click", tocarAnterior);
+
+    btnPlayPause.addEventListener("click", () => {
+      status.textContent = "";
+      if (player.paused) {
+        player.play().catch(() => {
+          status.textContent = "Clica novamente se necessário; alguns navegadores exigem interação.";
+        });
+      } else {
+        player.pause();
+      }
+      atualizarInfo();
+    });
+
+    btnShuffle.addEventListener("click", () => {
+      shuffleOn = !shuffleOn;
+      btnShuffle.textContent = `🔀 Shuffle: ${shuffleOn ? "ON" : "OFF"}`;
+      // reconstruir a fila mantendo a faixa atual, se existir
+      const atual = indiceAtual >= 0 ? fila[indiceAtual] : null;
+      construirFila();
+      if (atual) {
+        const novoIndex = fila.indexOf(atual);
+        indiceAtual = novoIndex >= 0 ? novoIndex : -1;
+      }
+      atualizarInfo();
+    });
+
+    btnDevCache.addEventListener("click", () => {
+      USE_CACHE_BUSTING = !USE_CACHE_BUSTING;
+      btnDevCache.textContent = `🧪 Cache busting: ${USE_CACHE_BUSTING ? "ON" : "OFF"}`;
+      status.textContent = USE_CACHE_BUSTING ? "Cache busting ativo para testes." : "";
+    });
+
+    // Clique na playlist
+    playlistEl.addEventListener("click", (ev) => {
+      const li = ev.target.closest("li");
+      if (!li) return;
+      const idx = Number(li.dataset.index);
+      tocarIndice(idx);
+    });
+
+    // Atalhos de teclado: Espaço, ←, →
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") { e.preventDefault(); player.paused ? player.play() : player.pause(); atualizarInfo(); }
+      else if (e.code === "ArrowRight") { e.preventDefault(); tocarProxima(); }
+      else if (e.code === "ArrowLeft") { e.preventDefault(); tocarAnterior(); }
+    });
+
+    /*** INICIALIZAÇÃO ***/
+    construirFila();
+    atualizarInfo();
+    // tentar reproduzir a primeira (alguns browsers pedem clique)
+    tocarProxima();
+  </script>
+</body>
+</html>
