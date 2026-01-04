@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -6,84 +5,69 @@
   <title>Rádio Online – Racoel Raycar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* Tema claro/escuro automático */
     :root { color-scheme: light dark; }
     html, body { margin: 0; padding: 0; }
     body {
       font-family: Arial, Helvetica, sans-serif;
-      display: grid;
-      grid-template-columns: 1fr min(420px, 35%);
-      grid-template-rows: auto auto auto 1fr;
-      gap: 16px;
+      margin: 0;
+      padding: 0;
       min-height: 100vh;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+
       background: Canvas;
       color: CanvasText;
     }
+
     header {
-      grid-column: 1 / -1;
-      padding: 24px 24px 8px 24px;
-      border-bottom: 1px solid color-mix(in oklab, CanvasText 15%, transparent);
+      margin-bottom: 20px;
     }
-    h1 { margin: 0 0 4px 0; font-size: clamp(20px, 2.6vw, 28px); }
-    .sub { color: color-mix(in oklab, CanvasText 50%, transparent); font-size: 14px; }
 
-    main { padding: 0 24px 24px 24px; }
-    aside { padding: 0 24px 24px 0; }
+    main {
+      width: 100%;
+      max-width: 640px;
+    }
 
-    /* Info, contador, status */
-    #info { font-weight: 600; margin: 8px 0; }
-    #contador { color: color-mix(in oklab, CanvasText 50%, transparent); margin: 4px 0; }
-    #status { min-height: 1.2em; margin: 6px 0 10px 0; color: #b00020; }
+    #info {
+      font-weight: 600;
+      margin: 8px 0;
+    }
 
-    /* Player + tempo */
-    .player-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    #tempo { font-variant-numeric: tabular-nums; color: color-mix(in oklab, CanvasText 40%, transparent); }
-    audio { width: min(640px, 100%); }
+    #status {
+      min-height: 1.2em;
+      margin: 6px 0 10px 0;
+      color: #b00020;
+    }
 
-    /* Botões */
-    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    button {
-      padding: 10px 16px; font-size: 15px; cursor: pointer; border-radius: 8px; border: 1px solid
-      color-mix(in oklab, CanvasText 15%, transparent);
-      background: color-mix(in oklab, Canvas 92%, CanvasText 8%);
+    audio {
+      width: 100%;
+    }
+
+    #tempo {
+      font-variant-numeric: tabular-nums;
+      margin-top: 8px;
+    }
+
+    /* Imagem responsiva */
+    #logo {
+      max-width: 100%;
+      height: auto;
+      margin-top: 16px;
+    }
+
+    #logo-text {
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: bold;
       color: CanvasText;
     }
-    button:hover { background: color-mix(in oklab, Canvas 85%, CanvasText 15%); }
-    .pill { border-radius: 999px; }
-    .secondary { background: transparent; }
 
-    /* Playlist */
-    #playlist-title { margin: 16px 0 8px 0; font-size: 16px; font-weight: 700; }
-    #playlist {
-      list-style: none; padding: 0; margin: 0;
-      border: 1px solid color-mix(in oklab, CanvasText 12%, transparent);
-      border-radius: 8px; overflow: hidden;
-    }
-    #playlist li {
-      display: grid;
-      grid-template-columns: 32px 1fr auto;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-bottom: 1px solid color-mix(in oklab, CanvasText 8%, transparent);
-      cursor: pointer;
-      background: color-mix(in oklab, Canvas 98%, CanvasText 2%);
-    }
-    #playlist li:last-child { border-bottom: none; }
-    #playlist li:hover { background: color-mix(in oklab, Canvas 92%, CanvasText 8%); }
-    #playlist li.playing {
-      background: color-mix(in oklab, Canvas 86%, CanvasText 14%);
-      outline: 2px solid color-mix(in oklab, CanvasText 18%, transparent);
-    }
-    .index-num { text-align: right; color: color-mix(in oklab, CanvasText 50%, transparent); }
-    .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .duration { color: color-mix(in oklab, CanvasText 45%, transparent); font-variant-numeric: tabular-nums; }
-
-    /* Rodapé simples */
     footer {
-      grid-column: 1 / -1;
-      padding: 12px 24px;
-      border-top: 1px solid color-mix(in oklab, CanvasText 15%, transparent);
+      margin-top: 24px;
       font-size: 12px;
       color: color-mix(in oklab, CanvasText 55%, transparent);
     }
@@ -93,45 +77,32 @@
 
   <header>
     <h1>Rádio Racoel Raycar</h1>
-    <div class="sub">Reprodução aleatória, lista clicável, atalhos de teclado e tempo em tempo real.</div>
   </header>
 
   <main>
     <div id="info">A preparar…</div>
-    <div id="contador">Faixas tocadas: 0</div>
     <div id="status"></div>
 
     <div class="player-row">
-      <!-- Oculta a opção de download no player -->
       <audio id="player" controls controlsList="nodownload"></audio>
       <div id="tempo">00:00 / --:--</div>
     </div>
 
-    <div class="controls">
-      <button id="anterior">⏮ Anterior</button>
-      <button id="playpause" class="pill">⏯ Play</button>
-      <button id="proxima">Próxima ▶</button>
-      <button id="shuffle" class="secondary pill">🔀 Shuffle: ON</button>
-      <!-- Alterna cache busting para testes (desativado por defeito) -->
-      <button id="devcache" class="secondary pill">🧪 Cache busting: OFF</button>
-    </div>
+    <!-- Imagem enviada pelo utilizador -->
+    <img id="logo" src="logo-raycar.jpg" alt="Logo Racoel Raycar">
+
+    <!-- Texto abaixo da imagem -->
+    <div id="logo-text">Racoel Raycar</div>
+
   </main>
 
-  <aside>
-    <div id="playlist-title">Playlist</div>
-    <ul id="playlist"></ul>
-  </aside>
-
   <footer>
-    © Racoel Raycar — Rádio Online • Atalhos: Espaço = Play/Pause, ← = Anterior, → = Próxima.
+    © Racoel Raycar — Rádio Online
   </footer>
 
   <script>
-    /*** CONFIGURAÇÃO ***/
-    // Alterna para true se quiseres forçar recarregamento dos MP3 em testes
     let USE_CACHE_BUSTING = false;
 
-    // Mantém esta lista com os Nomes EXATOS dos ficheiros na pasta /audio
     const faixas = [
       "audio/opus16_01_o_teu_nome.mp3",
       "audio/opus16_02_dare.mp3",
@@ -517,28 +488,14 @@
   "audio/opus30_27_never_a_goodbye_reprise.mp3"
 ];
 
-    
-    /*** ELEMENTOS ***/
-    const player = document.getElementById("player");
+   const player = document.getElementById("player");
     const info = document.getElementById("info");
-    const contadorDisplay = document.getElementById("contador");
     const status = document.getElementById("status");
     const tempo = document.getElementById("tempo");
-    const playlistEl = document.getElementById("playlist");
 
-    const btnPlayPause = document.getElementById("playpause");
-    const btnProxima = document.getElementById("proxima");
-    const btnAnterior = document.getElementById("anterior");
-    const btnShuffle = document.getElementById("shuffle");
-    const btnDevCache = document.getElementById("devcache");
-
-    /*** ESTADO ***/
-    let shuffleOn = true;
     let fila = [];
     let indiceAtual = -1;
-    let contadorFaixas = 0;
 
-    /*** UTILS ***/
     function baralhar(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -563,80 +520,28 @@
       return USE_CACHE_BUSTING ? `${url}?v=${Date.now()}` : url;
     }
 
-    /*** PLAYLIST / FILA ***/
     function construirFila() {
-      fila = shuffleOn ? baralhar([...faixas]) : [...faixas];
+      fila = baralhar([...faixas]);
       indiceAtual = -1;
-      renderPlaylist();
     }
 
-    function renderPlaylist() {
-      playlistEl.innerHTML = "";
-      fila.forEach((f, i) => {
-        const li = document.createElement("li");
-        li.dataset.index = String(i);
-        li.innerHTML = `
-          <div class="index-num">${i + 1}</div>
-          <div class="title">${nomeAmigavel(f)}</div>
-          <div class="duration">--:--</div>
-        `;
-        if (i === indiceAtual) li.classList.add("playing");
-        playlistEl.appendChild(li);
-
-        // tenta pré-carregar duração (metadados)
-        const a = document.createElement("audio");
-        a.preload = "metadata";
-        a.src = comVersao(f);
-        a.addEventListener("loadedmetadata", () => {
-          const d = a.duration;
-          const durDiv = li.querySelector(".duration");
-          if (durDiv) durDiv.textContent = fmtMMSS(d);
-        });
-      });
-    }
-
-    function destacarAtualNaPlaylist() {
-      [...playlistEl.children].forEach(li => li.classList.remove("playing"));
-      const atualLi = playlistEl.querySelector(`li[data-index="${indiceAtual}"]`);
-      if (atualLi) atualLi.classList.add("playing");
-    }
-
-    /*** INFO / UI ***/
     function atualizarInfo() {
       if (indiceAtual >= 0) {
         info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeAmigavel(fila[indiceAtual])}`;
       } else {
         info.textContent = "A preparar…";
       }
-      contadorDisplay.textContent = `Faixas tocadas: ${contadorFaixas}`;
-      btnPlayPause.textContent = player.paused ? "⏯ Play" : "⏸ Pause";
-      destacarAtualNaPlaylist();
     }
 
-    /*** REPRODUÇÃO ***/
     function setSourceAndPlay(src) {
       player.src = comVersao(src);
       return player.play().catch(err => {
-        // Autoplay bloqueado: mostra aviso
         console.warn("Autoplay bloqueado:", err);
-        status.textContent = "Autoplay bloqueado — clica em ⏯ Play para iniciar.";
-        btnPlayPause.textContent = "⏯ Play";
-      });
-    }
-
-    function tocarIndice(i) {
-      status.textContent = "";
-      if (fila.length === 0) construirFila();
-      if (i < 0 || i >= fila.length) return;
-      indiceAtual = i;
-      setSourceAndPlay(fila[indiceAtual]).then(() => {
-        contadorFaixas++;
-        atualizarInfo();
+        status.textContent = "Autoplay bloqueado — clica no player para iniciar.";
       });
     }
 
     function tocarProxima() {
-      status.textContent = "";
       if (fila.length === 0) construirFila();
       indiceAtual++;
       if (indiceAtual >= fila.length) {
@@ -644,88 +549,20 @@
         indiceAtual = 0;
       }
       setSourceAndPlay(fila[indiceAtual]).then(() => {
-        contadorFaixas++;
         atualizarInfo();
       });
     }
 
-    function tocarAnterior() {
-      status.textContent = "";
-      if (fila.length === 0 || indiceAtual <= 0) return;
-      indiceAtual--;
-      setSourceAndPlay(fila[indiceAtual]).then(() => {
-        // por defeito não incrementamos contador ao voltar atrás
-        atualizarInfo();
-      });
-    }
-
-    /*** EVENTOS DO PLAYER ***/
     player.addEventListener("ended", tocarProxima);
-    player.addEventListener("error", (e) => {
-      console.error("Erro no áudio:", e);
-      status.textContent = "Erro ao carregar esta faixa. A avançar para a próxima…";
-      setTimeout(tocarProxima, 400);
-    });
 
     player.addEventListener("timeupdate", () => {
       tempo.textContent = `${fmtMMSS(player.currentTime)} / ${fmtMMSS(player.duration)}`;
     });
 
-    /*** CONTROLOS ***/
-    btnProxima.addEventListener("click", tocarProxima);
-    btnAnterior.addEventListener("click", tocarAnterior);
-
-    btnPlayPause.addEventListener("click", () => {
-      status.textContent = "";
-      if (player.paused) {
-        player.play().catch(() => {
-          status.textContent = "Clica novamente se necessário; alguns navegadores exigem interação.";
-        });
-      } else {
-        player.pause();
-      }
-      atualizarInfo();
-    });
-
-    btnShuffle.addEventListener("click", () => {
-      shuffleOn = !shuffleOn;
-      btnShuffle.textContent = `🔀 Shuffle: ${shuffleOn ? "ON" : "OFF"}`;
-      // reconstruir a fila mantendo a faixa atual, se existir
-      const atual = indiceAtual >= 0 ? fila[indiceAtual] : null;
-      construirFila();
-      if (atual) {
-        const novoIndex = fila.indexOf(atual);
-        indiceAtual = novoIndex >= 0 ? novoIndex : -1;
-      }
-      atualizarInfo();
-    });
-
-    btnDevCache.addEventListener("click", () => {
-      USE_CACHE_BUSTING = !USE_CACHE_BUSTING;
-      btnDevCache.textContent = `🧪 Cache busting: ${USE_CACHE_BUSTING ? "ON" : "OFF"}`;
-      status.textContent = USE_CACHE_BUSTING ? "Cache busting ativo para testes." : "";
-    });
-
-    // Clique na playlist
-    playlistEl.addEventListener("click", (ev) => {
-      const li = ev.target.closest("li");
-      if (!li) return;
-      const idx = Number(li.dataset.index);
-      tocarIndice(idx);
-    });
-
-    // Atalhos de teclado: Espaço, ←, →
-    document.addEventListener("keydown", (e) => {
-      if (e.code === "Space") { e.preventDefault(); player.paused ? player.play() : player.pause(); atualizarInfo(); }
-      else if (e.code === "ArrowRight") { e.preventDefault(); tocarProxima(); }
-      else if (e.code === "ArrowLeft") { e.preventDefault(); tocarAnterior(); }
-    });
-
-    /*** INICIALIZAÇÃO ***/
     construirFila();
     atualizarInfo();
-    // tentar reproduzir a primeira (alguns browsers pedem clique)
     tocarProxima();
   </script>
+
 </body>
 </html>
