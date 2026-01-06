@@ -7,64 +7,42 @@
   <style>
     :root { color-scheme: light dark; }
     html, body { margin: 0; padding: 0; }
+
     body {
       font-family: Arial, Helvetica, sans-serif;
-      margin: 0;
-      padding: 0;
       min-height: 100vh;
-
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-
       background: Canvas;
       color: CanvasText;
     }
 
-    header {
-      margin-bottom: 20px;
-    }
+    header { margin-bottom: 20px; }
+    main { width: 100%; max-width: 640px; }
 
-    main {
-      width: 100%;
-      max-width: 640px;
-    }
-
-    #info {
-      font-weight: 600;
-      margin: 8px 0;
-    }
-
-    #status {
-      min-height: 1.2em;
-      margin: 6px 0 10px 0;
-      color: #b00020;
-    }
-
-    audio {
-      width: 100%;
-    }
+    #info { font-weight: 600; margin: 8px 0; }
+    #status { min-height: 1.2em; margin: 6px 0 10px 0; color: #b00020; }
+    audio { width: 100%; }
 
     #tempo {
       font-variant-numeric: tabular-nums;
       margin-top: 8px;
     }
 
-    /* Imagem responsiva */
-  #logo {
-  width: 80px !important;
-  max-width: 80px !important;
-  height: auto !important;
-  margin-top: 12px;
-}
+    #logo {
+      width: 120px;
+      height: auto;
+      margin-top: 16px;
+      transition: opacity 0.5s ease;
+    }
 
     #logo-text {
       margin-top: 8px;
       font-size: 18px;
       font-weight: bold;
-      color: CanvasText;
     }
 
     footer {
@@ -74,35 +52,30 @@
     }
   </style>
 </head>
+
 <body>
 
-  <header>
-    <h1>Rádio Racoel Raycar</h1>
-  </header>
+<header>
+  <h1>Rádio Racoel Raycar</h1>
+</header>
 
-  <main>
-    <div id="info">A preparar…</div>
-    <div id="status"></div>
+<main>
+  <div id="info">A preparar…</div>
+  <div id="status"></div>
 
-    <div class="player-row">
-      <audio id="player" controls controlsList="nodownload"></audio>
-      <div id="tempo">00:00 / --:--</div>
-    </div>
+  <audio id="player" controls controlsList="nodownload"></audio>
+  <div id="tempo">00:00 / --:--</div>
 
-    <!-- Imagem enviada pelo utilizador -->
-    <img id="logo" src="/racoel-raycar/logo.jpg" alt="Logo Racoel Raycar">
+  <img id="logo" src="/racoel-raycar/logo.jpg" alt="Racoel Raycar">
+  <div id="logo-text">Racoel Raycar</div>
+</main>
 
-    <!-- Texto abaixo da imagem -->
-    <div id="logo-text">Racoel Raycar</div>
+<footer>
+  © 2018-2021 all rights reserved
+</footer>
 
-  </main>
-
-  <footer>
-    © 2018-2021 all rigths reserved - Unauthorized reproduction, distribution, or public performance is prohibited.
-  </footer>
-
-  <script>
-    let USE_CACHE_BUSTING = false;
+<script>
+  let USE_CACHE_BUSTING = false;
 
     const faixas = [
       "audio/opus16_01_o_teu_nome.mp3",
@@ -490,80 +463,104 @@
 ];
 
    const player = document.getElementById("player");
-    const info = document.getElementById("info");
-    const status = document.getElementById("status");
-    const tempo = document.getElementById("tempo");
+  const info = document.getElementById("info");
+  const status = document.getElementById("status");
+  const tempo = document.getElementById("tempo");
+  const logo = document.getElementById("logo");
 
-    let fila = [];
-    let indiceAtual = -1;
+  let fila = [];
+  let indiceAtual = -1;
 
-    function baralhar(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
+  function baralhar(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
+    return arr;
+  }
 
-    function nomeAmigavel(path) {
-      const nome = path.split("/").pop();
-      return nome.replace(/_/g, " ").replace(/\.mp3$/i, "");
+  function nomeAmigavel(path) {
+    return path.split("/").pop().replace(/_/g, " ").replace(/\.mp3$/i, "");
+  }
+
+  function fmtMMSS(s) {
+    if (!isFinite(s) || s < 0) return "--:--";
+    const m = Math.floor(s / 60);
+    const ss = Math.floor(s % 60);
+    return `${String(m).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+  }
+
+  function comVersao(url) {
+    return USE_CACHE_BUSTING ? `${url}?v=${Date.now()}` : url;
+  }
+
+  function obterOpus(path) {
+    const m = path.match(/opus(\d+)/i);
+    return m ? m[1] : null;
+  }
+
+  function atualizarImagem(path) {
+    const opus = obterOpus(path);
+
+    if (opus && opus >= 16 && opus <= 30) {
+      logo.style.opacity = 0;
+      setTimeout(() => {
+        logo.src = `/racoel-raycar/opus/opus${opus}.jpg`;
+        logo.alt = `Opus ${opus}`;
+        logo.style.opacity = 1;
+      }, 250);
+    } else {
+      logo.src = "/racoel-raycar/logo.jpg";
     }
+  }
 
-    function fmtMMSS(s) {
-      if (!isFinite(s) || s < 0) return "--:--";
-      const m = Math.floor(s / 60);
-      const ss = Math.floor(s % 60);
-      return `${String(m).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+  function construirFila() {
+    fila = baralhar([...faixas]);
+    indiceAtual = -1;
+  }
+
+  function atualizarInfo() {
+    if (indiceAtual >= 0) {
+      info.textContent =
+        `Faixa ${indiceAtual + 1} de ${faixas.length}: ` +
+        nomeAmigavel(fila[indiceAtual]);
     }
+  }
 
-    function comVersao(url) {
-      return USE_CACHE_BUSTING ? `${url}?v=${Date.now()}` : url;
-    }
-
-    function construirFila() {
-      fila = baralhar([...faixas]);
-      indiceAtual = -1;
-    }
-
-    function atualizarInfo() {
-      if (indiceAtual >= 0) {
-        info.textContent = `Faixa ${indiceAtual + 1} de ${faixas.length}: ${nomeAmigavel(fila[indiceAtual])}`;
-      } else {
-        info.textContent = "A preparar…";
-      }
-    }
-
-    function setSourceAndPlay(src) {
-      player.src = comVersao(src);
-      return player.play().catch(err => {
-        console.warn("Autoplay bloqueado:", err);
-        status.textContent = "Autoplay bloqueado — clica no player para iniciar.";
-      });
-    }
-
-    function tocarProxima() {
-      if (fila.length === 0) construirFila();
-      indiceAtual++;
-      if (indiceAtual >= fila.length) {
-        construirFila();
-        indiceAtual = 0;
-      }
-      setSourceAndPlay(fila[indiceAtual]).then(() => {
-        atualizarInfo();
-      });
-    }
-
-    player.addEventListener("ended", tocarProxima);
-
-    player.addEventListener("timeupdate", () => {
-      tempo.textContent = `${fmtMMSS(player.currentTime)} / ${fmtMMSS(player.duration)}`;
+  function setSourceAndPlay(src) {
+    player.src = comVersao(src);
+    return player.play().catch(err => {
+      status.textContent = "Autoplay bloqueado — clica no player.";
     });
+  }
 
-    construirFila();
-    atualizarInfo();
-    tocarProxima();
-  </script>
+  function tocarProxima() {
+    if (fila.length === 0) construirFila();
+    indiceAtual++;
+
+    if (indiceAtual >= fila.length) {
+      construirFila();
+      indiceAtual = 0;
+    }
+
+    const faixaAtual = fila[indiceAtual];
+
+    setSourceAndPlay(faixaAtual).then(() => {
+      atualizarInfo();
+      atualizarImagem(faixaAtual);
+    });
+  }
+
+  player.addEventListener("ended", tocarProxima);
+
+  player.addEventListener("timeupdate", () => {
+    tempo.textContent =
+      `${fmtMMSS(player.currentTime)} / ${fmtMMSS(player.duration)}`;
+  });
+
+  construirFila();
+  tocarProxima();
+</script>
 
 </body>
 </html>
