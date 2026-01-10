@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Rádio Online – Opus16</title>
+  <title>Rádio Online</title>
 
   <style>
     body {
@@ -12,7 +12,14 @@
     }
 
     h2 {
-      margin-top: 30px;
+      margin-top: 20px;
+    }
+
+    /* IMAGEM DO OPUS */
+    #capa {
+      max-width: 300px;
+      margin: 20px auto;
+      display: block;
     }
 
     /* ===== TICKER ===== */
@@ -24,7 +31,6 @@
       white-space: nowrap;
     }
 
-    /* fades laterais */
     #info-wrapper::before,
     #info-wrapper::after {
       content: "";
@@ -53,7 +59,6 @@
       animation: scroll-info 18s linear infinite;
     }
 
-    /* pausa ao passar o rato */
     #info-wrapper:hover #info {
       animation-play-state: paused;
     }
@@ -62,39 +67,20 @@
       0% { transform: translateX(0); }
       100% { transform: translateX(-100%); }
     }
-
-    /* ===== CONTROLOS ===== */
-    button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #contador {
-      color: #555;
-      margin-bottom: 10px;
-    }
   </style>
 </head>
 
 <body>
 
-<h2>Rádio – Faixas Opus16</h2>
+<h2>Rádio – Emissão Contínua</h2>
+
+<img id="capa" src="imagens/opus16.jpg" alt="Opus">
 
 <div id="info-wrapper">
   <div id="info">A preparar…</div>
 </div>
 
-<div id="contador">Faixas tocadas: 0</div>
-
 <audio id="player" controls autoplay></audio>
-<br>
-
-<button id="anterior">⏮ Anterior</button>
-<button id="playpause">⏯ Play / Pause</button>
-<button id="proxima">Próxima ▶</button>
-
 
 <script>
   const faixas = [
@@ -484,16 +470,9 @@
 
   const player = document.getElementById("player");
   const info = document.getElementById("info");
-  const contador = document.getElementById("contador");
-
-  const btnNext = document.getElementById("proxima");
-  const btnPrev = document.getElementById("anterior");
-  const btnPlayPause = document.getElementById("playpause");
+  const capa = document.getElementById("capa");
 
   let fila = [];
-  let historico = [];
-  let indice = -1;
-  let tocadas = 0;
 
   function baralhar(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -505,52 +484,35 @@
 
   function novaFila() {
     fila = baralhar([...faixas]);
-    indice = -1;
   }
 
-  function atualizarInfo() {
-    const nome = fila[indice].split("/").pop();
-    info.textContent = `Faixa ${indice + 1} de ${faixas.length} — ${nome}`;
-
-    /* reinicia animação */
+  function atualizarTicker(nome) {
+    info.textContent = nome;
     info.style.animation = "none";
     info.offsetHeight;
     info.style.animation = "";
   }
 
-  function tocarProxima() {
-    if (fila.length === 0) novaFila();
-    indice++;
-    if (indice >= fila.length) {
-      novaFila();
-      indice = 0;
+  function atualizarCapa(faixa) {
+    const match = faixa.match(/(opus\d+)/i);
+    if (match) {
+      capa.src = `imagens/${match[1].toLowerCase()}.jpg`;
     }
-    player.src = fila[indice];
-    player.play();
-
-    tocadas++;
-    contador.textContent = `Faixas tocadas: ${tocadas}`;
-    atualizarInfo();
-
-    console.log("A tocar:", fila[indice]);
   }
 
-  function tocarAnterior() {
-    if (indice <= 0) return;
-    indice--;
-    player.src = fila[indice];
+  function tocarProxima() {
+    if (fila.length === 0) novaFila();
+
+    const musica = fila.shift();
+    player.src = musica;
     player.play();
-    atualizarInfo();
+
+    const nome = musica.split("/").pop();
+    atualizarTicker(nome);
+    atualizarCapa(nome);
   }
 
   player.addEventListener("ended", tocarProxima);
-  btnNext.addEventListener("click", tocarProxima);
-  btnPrev.addEventListener("click", tocarAnterior);
-
-  btnPlayPause.addEventListener("click", () => {
-    if (player.paused) player.play();
-    else player.pause();
-  });
 
   novaFila();
   tocarProxima();
