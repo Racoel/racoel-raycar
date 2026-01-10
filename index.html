@@ -1,34 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Rádio Online</title>
+  <meta charset="UTF-8" />
+  <title>Rádio Online – Racoel Raycar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
+    :root { color-scheme: light dark; }
+    html, body { margin: 0; padding: 0; }
+
     body {
-      text-align: center;
       font-family: Arial, Helvetica, sans-serif;
-      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: Canvas;
+      color: CanvasText;
     }
 
-    h2 {
-      margin-top: 20px;
-    }
-
-    /* IMAGEM DO OPUS */
-    #capa {
-      max-width: 300px;
-      margin: 20px auto;
-      display: block;
-    }
+    header { margin-bottom: 20px; }
+    main { width: 100%; max-width: 640px; }
 
     /* ===== TICKER ===== */
     #info-wrapper {
       position: relative;
-      width: 80%;
-      margin: 20px auto;
+      width: 100%;
       overflow: hidden;
       white-space: nowrap;
+      margin: 8px 0;
     }
 
     #info-wrapper::before,
@@ -36,7 +38,7 @@
       content: "";
       position: absolute;
       top: 0;
-      width: 60px;
+      width: 48px;
       height: 100%;
       z-index: 2;
       pointer-events: none;
@@ -44,18 +46,18 @@
 
     #info-wrapper::before {
       left: 0;
-      background: linear-gradient(to right, #fff 0%, transparent 100%);
+      background: linear-gradient(to right, Canvas 0%, transparent 100%);
     }
 
     #info-wrapper::after {
       right: 0;
-      background: linear-gradient(to left, #fff 0%, transparent 100%);
+      background: linear-gradient(to left, Canvas 0%, transparent 100%);
     }
 
     #info {
       display: inline-block;
       padding-left: 100%;
-      font-weight: bold;
+      font-weight: 600;
       animation: scroll-info 18s linear infinite;
     }
 
@@ -64,25 +66,69 @@
     }
 
     @keyframes scroll-info {
-      0% { transform: translateX(0); }
+      0%   { transform: translateX(0); }
       100% { transform: translateX(-100%); }
+    }
+
+    #status { min-height: 1.2em; margin: 6px 0 10px 0; color: #b00020; }
+    audio { width: 100%; }
+
+    #tempo {
+      font-variant-numeric: tabular-nums;
+      margin-top: 8px;
+    }
+
+    #logo {
+      width: 120px;
+      height: auto;
+      margin-top: 16px;
+      transition: opacity 0.5s ease;
+    }
+
+    #logo-text {
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 24px;
+      font-size: 12px;
+      color: color-mix(in oklab, CanvasText 55%, transparent);
     }
   </style>
 </head>
 
 <body>
 
-<h2>Rádio – Emissão Contínua</h2>
+<header>
+  <h1>Rádio Racoel Raycar</h1>
+</header>
 
-<img id="capa" src="imagens/opus16.jpg" alt="Opus">
+<main>
 
-<div id="info-wrapper">
-  <div id="info">A preparar…</div>
-</div>
+  <!-- TICKER -->
+  <div id="info-wrapper">
+    <div id="info">A preparar…</div>
+  </div>
 
-<audio id="player" controls autoplay></audio>
+  <div id="status"></div>
+
+  <audio id="player" controls controlsList="nodownload"></audio>
+  <div id="tempo">00:00 / --:--</div>
+
+  <img id="logo" src="/racoel-raycar/logo.jpg" alt="Racoel Raycar">
+  <div id="logo-text">Racoel Raycar</div>
+
+</main>
+
+<footer>
+  © 2018-2021 all rights reserved
+</footer>
 
 <script>
+  let USE_CACHE_BUSTING = false;
+
   const faixas = [
       "audio/opus16_01_o_teu_nome.mp3",
       "audio/opus16_02_dare.mp3",
@@ -470,9 +516,12 @@
 
   const player = document.getElementById("player");
   const info = document.getElementById("info");
-  const capa = document.getElementById("capa");
+  const status = document.getElementById("status");
+  const tempo = document.getElementById("tempo");
+  const logo = document.getElementById("logo");
 
   let fila = [];
+  let indiceAtual = -1;
 
   function baralhar(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -482,42 +531,90 @@
     return arr;
   }
 
-  function novaFila() {
-    fila = baralhar([...faixas]);
+  function nomeAmigavel(path) {
+    return path.split("/").pop().replace(/_/g, " ").replace(/\.mp3$/i, "");
   }
 
-  function atualizarTicker(nome) {
-    info.textContent = nome;
-    info.style.animation = "none";
-    info.offsetHeight;
-    info.style.animation = "";
+  function fmtMMSS(s) {
+    if (!isFinite(s) || s < 0) return "--:--";
+    const m = Math.floor(s / 60);
+    const ss = Math.floor(s % 60);
+    return `${String(m).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
   }
 
-  function atualizarCapa(faixa) {
-    const match = faixa.match(/(opus\d+)/i);
-    if (match) {
-      capa.src = `imagens/${match[1].toLowerCase()}.jpg`;
+  function comVersao(url) {
+    return USE_CACHE_BUSTING ? `${url}?v=${Date.now()}` : url;
+  }
+
+  function obterOpus(path) {
+    const m = path.match(/opus(\d+)/i);
+    return m ? m[1] : null;
+  }
+
+  function atualizarImagem(path) {
+    const opus = obterOpus(path);
+    if (opus && opus >= 16 && opus <= 30) {
+      logo.style.opacity = 0;
+      setTimeout(() => {
+        logo.src = `/racoel-raycar/opus/opus${opus}.jpg`;
+        logo.alt = `Opus ${opus}`;
+        logo.style.opacity = 1;
+      }, 250);
+    } else {
+      logo.src = "/racoel-raycar/logo.jpg";
     }
   }
 
+  function construirFila() {
+    fila = baralhar([...faixas]);
+    indiceAtual = -1;
+  }
+
+  function atualizarInfo() {
+    if (indiceAtual >= 0) {
+      info.textContent =
+        `Faixa ${indiceAtual + 1} de ${faixas.length}: ` +
+        nomeAmigavel(fila[indiceAtual]);
+
+      /* reinicia animação do ticker */
+      info.style.animation = "none";
+      info.offsetHeight;
+      info.style.animation = "";
+    }
+  }
+
+  function setSourceAndPlay(src) {
+    player.src = comVersao(src);
+    return player.play().catch(() => {
+      status.textContent = "Autoplay bloqueado — clica no player.";
+    });
+  }
+
   function tocarProxima() {
-    if (fila.length === 0) novaFila();
+    if (fila.length === 0) construirFila();
+    indiceAtual++;
+    if (indiceAtual >= fila.length) {
+      construirFila();
+      indiceAtual = 0;
+    }
 
-    const musica = fila.shift();
-    player.src = musica;
-    player.play();
-
-    const nome = musica.split("/").pop();
-    atualizarTicker(nome);
-    atualizarCapa(nome);
+    const faixaAtual = fila[indiceAtual];
+    setSourceAndPlay(faixaAtual).then(() => {
+      atualizarInfo();
+      atualizarImagem(faixaAtual);
+    });
   }
 
   player.addEventListener("ended", tocarProxima);
 
-  novaFila();
+  player.addEventListener("timeupdate", () => {
+    tempo.textContent =
+      `${fmtMMSS(player.currentTime)} / ${fmtMMSS(player.duration)}`;
+  });
+
+  construirFila();
   tocarProxima();
 </script>
 
 </body>
-</html>
 </html>
