@@ -600,7 +600,7 @@ h1 {
   function setSourceAndPlay(src) {
     player.src = comVersao(src);
     return player.play().catch(() => {
-      status.textContent = "Autoplay blocked — click on the player";
+      status.textContent = "if needed, press play";
     });
   }
 
